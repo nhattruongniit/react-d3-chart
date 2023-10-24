@@ -47,10 +47,6 @@ function LogarithmicChart({ lowestBound, highestBound, variant }) {
       upper = upper + 3;
       trackWidth = Number(upper) - Number(low);
     }
-    // else {
-    //   upper = upper + 3;
-    //   trackWidth = Number(upper) - Number(low);
-    // }
 
     // get color line track
     let colorTrack = "#a0a0a0";
