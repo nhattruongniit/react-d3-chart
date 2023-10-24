@@ -1,18 +1,5 @@
+/* eslint-disable no-loss-of-precision */
 export const dataChart = {
-  userCount: {
-    Ab_num_me_start1: {
-      value: 210,
-      variantType: "BASE",
-    },
-    Ab_num_me_start2: {
-      value: 212,
-      variantType: "COMPARED",
-    },
-    Ab_num_me_start3: {
-      value: 228,
-      variantType: "COMPARED",
-    },
-  },
   metrics: [
     {
       name: "sum_retention",
