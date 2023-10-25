@@ -156,6 +156,35 @@ export const dataChart = {
           name: "Ab_num_me_start 15",
           variantType: "COMPARED",
         },
+        {
+          PValue: 0.1577940586939371,
+          confidentialInternal: {
+            changes: null,
+            lowerBound: -123,
+            upperBound: null,
+          },
+          mean: 1,
+          name: "Ab_num_me_start 6",
+          variantType: "COMPARED",
+        },
+        {
+          PValue: 0.1577940586939371,
+          confidentialInternal: null,
+          mean: 1,
+          name: "Ab_num_me_start 18",
+          variantType: "COMPARED",
+        },
+        {
+          PValue: 0.1577940586939371,
+          confidentialInternal: {
+            changes: null,
+            lowerBound: null,
+            upperBound: null,
+          },
+          mean: 1,
+          name: "Ab_num_me_start 20",
+          variantType: "COMPARED",
+        },
       ],
     },
     {
