@@ -5,7 +5,7 @@ import { dataChart } from "./mocks/dataChart";
 
 // components
 import ColumnConfidental from "./components/ColumnConfidental";
-import PlotChart from "./PlotChart";
+import DotPlot from "./components/DotPlot";
 
 // helpers
 import { numberToFixed } from "./helpers/numberConsecutiveZeros";
@@ -94,8 +94,8 @@ function ChartView() {
                         </td>
                         {index === 0 && (
                           <td className="align-top" rowSpan={variantLength}>
-                            <ColumnConfidental variants={metric.variants} />
-                            {/* <PlotChart /> */}
+                            {/* <ColumnConfidental variants={metric.variants} /> */}
+                            <DotPlot variants={metric.variants} />
                           </td>
                         )}
                       </tr>
