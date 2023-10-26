@@ -164,16 +164,10 @@ function DotPlot({ variants = [], tdRef }) {
       .nice();
     svg
       .append("g")
-      .call(d3.axisTop(x).tickSize(-1 * height))
+      .call(d3.axisTop(x).tickSizeInner(-1 * height))
       .call((g) =>
         g
-          .selectAll(".tick:first-of-type line")
-          .attr("class", "axis_bar")
-          .attr("stroke", "black")
-      )
-      .call((g) =>
-        g
-          .selectAll(".tick:not(:first-of-type) line")
+          .selectAll(".tick line")
           .attr("class", "axis_y_tick")
           .attr("stroke-width", 0.1)
       );
@@ -188,7 +182,8 @@ function DotPlot({ variants = [], tdRef }) {
       .append("g")
       .style("font-size", `${fontSize}`)
       .attr("dx", ".71em")
-      .call(d3.axisLeft(y));
+      .call(d3.axisLeft(y))
+      .call(g => g.select(".domain").remove());
 
     // Lines
     const stk_w = "4px";
