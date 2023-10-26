@@ -48,8 +48,8 @@ export const dataChart = {
           PValue: 0.1577940586939371,
           confidentialInternal: {
             changes: 0.009615384615384581,
-            lowerBound: -150,
-            upperBound: -128,
+            lowerBound: -5546,
+            upperBound: 5546,
           },
           mean: 1,
           name: "Ab_num_me_start 6",
@@ -160,6 +160,17 @@ export const dataChart = {
           },
           mean: 1,
           name: "Ab_num_me_start 20",
+          variantType: "COMPARED",
+        },
+        {
+          PValue: 0.1577940586939371,
+          confidentialInternal: {
+            changes: null,
+            lowerBound: null,
+            upperBound: null,
+          },
+          mean: 1,
+          name: "Ab_num_me_start 21",
           variantType: "COMPARED",
         },
       ],
