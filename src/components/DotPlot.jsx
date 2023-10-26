@@ -157,7 +157,13 @@ function DotPlot({ variants = [], tdRef }) {
 			.range([0, width])
 			.nice();
 		svg.append("g")
-			.call(d3.axisTop(x).tickSize(-1 * height));
+			.call(d3.axisTop(x).tickSize(-1 * height))
+			.call(g => g.selectAll(".tick:first-of-type line")
+				.attr("class", "axis_bar")
+				.attr("stroke", "black"))
+			.call(g => g.selectAll(".tick:not(:first-of-type) line")
+				.attr("class", "axis_y_tick")
+				.attr("stroke-width", 0.1));
 
 		// Y axis
 		const y = d3.scaleBand()
