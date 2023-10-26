@@ -6,12 +6,14 @@ import { dataChart } from "./mocks/dataChart";
 // components
 import ColumnConfidental from "./components/ColumnConfidental";
 import DotPlot from "./components/DotPlot";
+import { useRef } from 'react'
 
 // helpers
 import { numberToFixed } from "./helpers/numberConsecutiveZeros";
 
 function ChartView() {
   console.log("dataChart: ", dataChart);
+  const tdRef = useRef();
   return (
     <div className="mt-8">
       <table className="experiment-results table-sm">
@@ -93,9 +95,9 @@ function ChartView() {
                           {pValue || "-"}
                         </td>
                         {index === 0 && (
-                          <td className="align-top" rowSpan={variantLength}>
+                          <td className="align-top" rowSpan={variantLength} ref={tdRef}>
                             {/* <ColumnConfidental variants={metric.variants} /> */}
-                            <DotPlot variants={metric.variants} />
+                            <DotPlot variants={metric.variants} tdRef={tdRef} />
                           </td>
                         )}
                       </tr>

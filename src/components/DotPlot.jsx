@@ -4,7 +4,19 @@ import * as d3 from "d3";
 import { getColorText } from "../helpers/getColorText";
 
 
-const convertData = (variant) => {
+
+const calculateTextWidth = (txt, fontSize) => {
+	const newDiv = document.createElement("div");
+	newDiv.append(txt);
+	newDiv.style.cssText = `position:absolute;visibility:hidden;height:auto;width:auto;white-space:nowrap;font-size:${fontSize}`
+	document.body.append(newDiv);
+	const labelWidth = newDiv.clientWidth;
+	newDiv.remove();
+	return labelWidth;
+}
+
+
+const convertData = (lowestBound, highestBound, width, variant) => {
 	const lowerBound = variant?.confidentialInternal?.lowerBound ?? 0;
 	const upperBound = variant?.confidentialInternal?.upperBound ?? 0;
 	const midpoint = variant?.confidentialInternal?.changes ?? 0;
@@ -20,23 +32,62 @@ const convertData = (variant) => {
 
 	// get color of dot
 	const colorTextLow = getColorText(lowerBound);
-	const colorTextMid = getColorText(midpoint);
 	const colorTextUpper = getColorText(upperBound);
 
-	return {
+	const options = {
+		lowerBound,
+		upperBound,
+		midpoint,
+		width,
+	};
+
+	let textLow = options?.lowerBound || 0;
+	let textUpper = options?.upperBound || 0;
+
+	if (textLow > -1 && textLow < 1) {
+		textLow = Number(textLow.toFixed(3));
+	} else if ((textLow > -10 && textLow < -1) || (textLow > 1 && textLow < 10)) {
+		textLow = Number(textLow.toFixed(1));
+	}
+
+	if (textUpper > -1 && textUpper < 1) {
+		textUpper = Number(textUpper.toFixed(3));
+	} else if (
+		(textUpper > -10 && textUpper < -1) ||
+		(textUpper > 1 && textUpper < 10)
+	) {
+		textUpper = Number(textUpper.toFixed(1));
+	}
+
+	const payload = {
 		name: variant.name,
 		low: lowerBound,
 		mid: (lowerBound + upperBound) / 2,
 		upper: upperBound,
 		colorTrack,
 		colorTextLow,
-		colorTextMid,
-		colorTextUpper
+		colorTextUpper,
+		textLow,
+		textUpper
 	}
+
+	const axisDelta = upperBound - lowerBound;
+	if (axisDelta > 0) {
+		const lineW = axisDelta * width / (highestBound - lowestBound);
+		const defaultStrokeWidth = 30;
+		if (lineW < defaultStrokeWidth) {
+			const newDelta = defaultStrokeWidth * (highestBound - lowestBound) / width;
+			payload.low = payload.low - newDelta / 2;
+			payload.upper = payload.upper + newDelta / 2;
+		}
+	}
+
+	return payload
 }
 
-function DotPlot({ variants = [] }) {
+function DotPlot({ variants = [], tdRef }) {
 	const dataviz = useRef();
+	variants = variants.filter(v => v.variantType && v.variantType == "COMPARED");
 
 	const { lowestBound, highestBound } = variants.reduce(
 		(acc, variant) => {
@@ -54,23 +105,30 @@ function DotPlot({ variants = [] }) {
 	);
 
 	useEffect(() => {
+		if (!tdRef.current) return;
 		// calculate label width
 		const labels = variants.map(v => v.name);
 		const longestLabel = labels.sort((a, b) => b.length - a.length)[0];
-		const newDiv = document.createElement("div");
-		newDiv.append(longestLabel);
 		const fontSize = "12px";
-		newDiv.style.cssText = `position:absolute;visibility:hidden;height:auto;width:auto;white-space:nowrap;font-size:${fontSize}`
-		document.body.append(newDiv);
-		const labelWidth = newDiv.clientWidth + 1;
-		newDiv.remove();
-
-		const plotData = variants.map(v => convertData(v));
+		const labelWidth = calculateTextWidth(longestLabel, fontSize);
 
 		// set the dimensions and margins of the graph
 		const margin = { top: 30, right: 30, bottom: 30, left: labelWidth + 20 },
-			width = dataviz.current.clientWidth - margin.left - margin.right,
-			height = labels.length * 50 - margin.top - margin.bottom;
+			width = tdRef.current.clientWidth - margin.left - margin.right,
+			height = labels.length * 35;
+
+
+		const plotData = variants.map(v => convertData(lowestBound, highestBound, width, v));
+
+		const valueFontSize = "11px";
+		const leftPadding = calculateTextWidth(String(lowestBound), valueFontSize);
+		const domainStart = lowestBound - ((leftPadding + 10) * (highestBound - lowestBound) / width);
+		const rightPadding = calculateTextWidth(String(highestBound), valueFontSize);
+		const domainEnd = highestBound + ((rightPadding + 10) * (highestBound - lowestBound) / width);
+
+		const hasData = plotData.filter(p => p.upper - p.low > 0);
+		if (hasData.length == 0)
+			return
 
 		// append the svg object to the body of the page
 		const svg = d3.select(dataviz.current)
@@ -82,22 +140,23 @@ function DotPlot({ variants = [] }) {
 
 		// Add X axis
 		const x = d3.scaleLinear()
-			.domain([lowestBound, highestBound])
+			.domain([domainStart, domainEnd])
 			.range([0, width])
 			.nice();
 		svg.append("g")
-			.call(d3.axisTop(x).tickSize(-1 * height))
+			.call(d3.axisTop(x).tickSize(-1 * height));
 
 		// Y axis
 		const y = d3.scaleBand()
+			.domain(plotData.map(p => p.name))
 			.range([0, height])
-			.domain(plotData.map(function (d) { return d.name; }))
 			.padding(1);
 		svg.append("g")
 			.style("font-size", `${fontSize}`)
-			.call(d3.axisLeft(y))
+			.attr('dx', '.71em')
+			.call(d3.axisLeft(y));
 
-		const hasData = plotData.filter(p => p.upper - p.low > 0)
+
 
 		// Lines
 		const stk_w = "4px";
@@ -149,7 +208,37 @@ function DotPlot({ variants = [] }) {
 			.attr("r", r)
 			.style("fill", function (d) { return d.colorTrack; })
 
-	}, []);
+		svg.selectAll("textStart")
+			.data(hasData)
+			.enter()
+			.append("text")
+			.style("font-size", `${valueFontSize}`)
+			.attr("fill", function (d) { return d.colorTextLow; })
+			.attr("x", function (d) {
+				const delta = calculateTextWidth(d.textLow + "%", valueFontSize);
+				const axisDelta = (delta + 20) * (domainEnd - domainStart) / width;
+				return x(d.low - axisDelta);
+			})
+			// .attr("x", function (d) { return x(d.low); })
+			.attr("y", function (d) { return y(d.name); })
+			.attr("dy", ".35em")
+			.text(function (d) { return d.textLow + "%"; });
+
+		svg.selectAll("textEnd")
+			.data(hasData)
+			.enter()
+			.append("text")
+			.style("font-size", `${valueFontSize}`)
+			.attr("fill", function (d) { return d.colorTextUpper; })
+			.attr("x", function (d) {
+				const axisDelta = 15 * (domainEnd - domainStart) / width;
+				return x(d.upper + axisDelta);
+			})
+			.attr("y", function (d) { return y(d.name); })
+			.attr("dy", ".35em")
+			.text(function (d) { return d.textUpper + "%"; });
+
+	}, [tdRef]);
 
 	return (
 		<div ref={dataviz} />
