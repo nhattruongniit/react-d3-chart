@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as d3 from "d3";
 import { getColorText } from "../helpers/getColorText";
 
@@ -87,6 +87,18 @@ const convertData = (lowestBound, highestBound, width, variant) => {
 
 function DotPlot({ variants = [], tdRef }) {
 	const dataviz = useRef();
+
+
+	const [plotWidth, setPlotWidth] = useState(0)
+	useEffect(() => {
+		const observer = new ResizeObserver(entries => {
+			setPlotWidth(entries[0].contentRect.width)
+		})
+		observer.observe(tdRef.current)
+		return () => tdRef.current && observer.unobserve(tdRef.current)
+	}, [])
+
+
 	variants = variants.filter(v => v.variantType && v.variantType == "COMPARED");
 
 	const { lowestBound, highestBound } = variants.reduce(
@@ -105,7 +117,7 @@ function DotPlot({ variants = [], tdRef }) {
 	);
 
 	useEffect(() => {
-		if (!tdRef.current) return;
+		if (plotWidth == 0) return;
 		// calculate label width
 		const labels = variants.map(v => v.name);
 		const longestLabel = labels.sort((a, b) => b.length - a.length)[0];
@@ -114,7 +126,7 @@ function DotPlot({ variants = [], tdRef }) {
 
 		// set the dimensions and margins of the graph
 		const margin = { top: 30, right: 30, bottom: 30, left: labelWidth + 20 },
-			width = tdRef.current.clientWidth - margin.left - margin.right,
+			width = plotWidth - margin.left - margin.right,
 			height = labels.length * 35;
 
 
@@ -131,6 +143,7 @@ function DotPlot({ variants = [], tdRef }) {
 			return
 
 		// append the svg object to the body of the page
+		d3.select(dataviz.current).selectAll("svg").remove();
 		const svg = d3.select(dataviz.current)
 			.append("svg")
 			.attr("width", width + margin.left + margin.right)
@@ -238,7 +251,7 @@ function DotPlot({ variants = [], tdRef }) {
 			.attr("dy", ".35em")
 			.text(function (d) { return d.textUpper + "%"; });
 
-	}, [tdRef]);
+	}, [plotWidth]);
 
 	return (
 		<div ref={dataviz} />
