@@ -1,15 +1,15 @@
 import clsx from "clsx";
 
 // mocks
-import { dataChart } from "./mocks/dataChart";
+import { dataChart } from "../mocks/dataChart";
 
 // components
-import ColumnConfidental from "./components/ColumnConfidental";
-import DotPlot from "./components/DotPlot";
+import ColumnConfidental from "../components/ColumnConfidental";
+import DotPlot from "../components/DotPlot";
 import { useRef } from 'react'
 
 // helpers
-import { numberToFixed } from "./helpers/numberConsecutiveZeros";
+import { numberToFixed } from "../helpers/numberConsecutiveZeros";
 
 function ChartView() {
   console.log("dataChart: ", dataChart);
